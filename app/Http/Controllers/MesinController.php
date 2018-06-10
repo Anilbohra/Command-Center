@@ -3,9 +3,31 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Mesin;
+use App\MesinLokasi;
+use SDK;
 
 class MesinController extends Controller
 {
+    public function manageForm(){
+        $mesin = Mesin::all();
+        $lokasi = MesinLokasi::all();
+        return view('form.mesin.manage',['mesin' => $mesin, 'lokasi' => $lokasi]);
+    }
+
+    private function tambahMesin($ip,$nama,$lokasi){
+        $mesin = new Mesin();
+        $mesin->ipv4 = $ip;
+        $mesin->nama = $nama;
+        $mesin->lokasi = $lokasi;
+
+        if($mesin->save()){
+            return true;
+        }else{
+            return false;
+        }
+    }
+
     public function clone(Request $request){
         $mesin_sumber = $request->input('mesin_sumber');
         $mesin_tujuan = $request->input('mesin_tujuan');
@@ -28,6 +50,11 @@ class MesinController extends Controller
         }
 
         return view('status',['act' => 'cloneMesin', 'sukses' => $sukses, 'gagal' => $gagal, 'total' => $total]);
+    }
+
+    public function cloneForm(Request $request){
+        $mesin =  Mesin::all();
+        return view('clone',['mesin' => $mesin]);
     }
 
     public function compare(Request $request){
@@ -81,9 +108,9 @@ class MesinController extends Controller
 
         $status = $this->koneksi_ke_mesin($mesin,"deleteUser","<PIN>".$npp."</PIN>");
         if($status == "Succesfully!"){
-            return view('status',['act' => 'deleteUser', 'success' => true]);
+            return view('status',['act' => 'deleteUser', 'sukses' => true]);
         }else{
-            return view('status',['act' => 'deleteUser', 'success' => false]);
+            return view('status',['act' => 'deleteUser', 'sukses' => false]);
         }
     }
 
@@ -94,9 +121,19 @@ class MesinController extends Controller
         $argumen = "<PIN>".$pegawai->npp."</PIN><Name>".$pegawai->nama."</Name><Card>".$pegawai->nomor_kartu."</Card>";
         $status = $this->koneksi_ke_mesin($mesin,"addUser",$argumen);
         if($status == "Succesfully!"){
-            return view('status',['act' => 'addUser', 'success' => true]);
+            return view('status',['act' => 'addUser', 'sukses' => true]);
         }else{
-            return view('status',['act' => 'addUser', 'success' => false]);
+            return view('status',['act' => 'addUser', 'sukses' => false]);
+        }
+    }
+
+    public function clearLogKehadiran(Request $request){
+        $mesin = $request->input('mesin');
+        $status = $this->koneksi_ke_mesin($mesin,"clearLogKehadiran","<Value xsi:type=\"xsd:integer\">3</Value>");
+        if($status == "Succesfully!"){
+            return view('status',['act' => 'clearLogMesin', 'sukses' => true]);
+        }else{
+            return view('status',['act' => 'clearLogMesin', 'sukses' => false]);
         }
     }
 
